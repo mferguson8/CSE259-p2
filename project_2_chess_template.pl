@@ -90,12 +90,18 @@ play(Board) :-
 		/* move playerA */
 		/* get_command asks the user for the move to be made. 
 		   modify this so that playerA moves on its own */
-    get_command(Command),
-    execute_command(Command, Board, NewBoard),
+    % print_board(Board),
+    execute_command(PlayerA, Board, NewBoard),
 
     /* move playerB */
+    print_board(Board),
     execute_command(playerB, NewBoard, NextNewBoard),
+    print_board(Board),
     play(NextNewBoard).
+  
+get_command(Command) :-
+    nl, write('white move -> '),
+    read(Command), !.
 
 /* execute the move selected */
 execute_command(Move, Board, NewBoard) :-
@@ -169,6 +175,7 @@ respond_to(Player, Board, OutBoard) :-
     write('Working...'), nl,
     % statistics,
     select_move(Player, Board, From, To, Rating),       % Select the next move
+    write('...'), nl,
     % statistics,
     finish_move(Player, Board, From, To, Rating,        % Finish the next move
           OutBoard), !.
@@ -403,16 +410,16 @@ check_castling(Board, e-Rank, c-Rank, Color, king, OutBoard) :- % Queen side
 check_castling(Board, _, _, _, _, Board).
 
 parse_square(Square, File-Rank) :-
-    name(Square, [F,R]),
-    name(File, [F]),
+    myname(Square, [F,R]),
+    myname(File, [F]),
     myname(Rank, [R]),
     on_board(File-Rank).
  
 parse_move(Move, From_File-From_Rank, To_File-To_Rank) :-
-    name(Move, [FF,FR,TF,TR]),
-    name(From_File, [FF]),
+    myname(Move, [FF,FR,TF,TR]),
+    myname(From_File, [FF]),
     myname(From_Rank, [FR]),
-    name(To_File, [TF]),
+    myname(To_File, [TF]),
     myname(To_Rank, [TR]),
     on_board(From_File-From_Rank),
     on_board(To_File-To_Rank).
@@ -484,7 +491,7 @@ drawContentCell(BoardStates, Row, Col) :-
 % finds whether the current cell has any white or black piece in it
 drawCell(BoardStates, Row, Col) :-
   pair(Name, Col),
-  myMember(piece(Name-Row, Color, Piece), BoardStates),
+  mymember(piece(Name-Row, Color, Piece), BoardStates),
   drawSymbol(' ', 1),
   (
     (Color == black, drawSymbol('*', 1));
@@ -497,7 +504,7 @@ drawCell(BoardStates, Row, Col) :-
 % deals with white space
 drawCell(BoardStates, Row, Col) :-
   pair(Name, Col),
-  \+ (myMember(piece(Name-Row, Color, Piece), BoardStates)),
+  (\+(mymember(piece(Name-Row, Color, Piece), BoardStates))),
   drawSymbol(' ', 4).
 
   
@@ -516,6 +523,7 @@ pair(e, 4).
 pair(f, 3).
 pair(g, 2).
 pair(h, 1).
+
 pair(rook, r).
 pair(bishop, b).
 pair(king, k).
@@ -776,3 +784,5 @@ opposite(black, white).
 
 opposite(playerA, playerB).
 opposite(playerB, playerA).
+
+% Board = ["        ", "        ", "        ", "        ", "        ", "        ", "        ", "        "], print_board(Board).
