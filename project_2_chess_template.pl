@@ -97,15 +97,6 @@ play(Board) :-
     execute_command(playerB, NewBoard, NextNewBoard),
     play(NextNewBoard).
 
-
-
-/* getting command from the user so that playerA aka white can move */
-get_command(Command) :-
-    nl, write('white move -> '),
-    read(Command), !.
-  
-
-
 /* execute the move selected */
 execute_command(Move, Board, NewBoard) :-
          parse_move(Move, From, To),
@@ -135,13 +126,69 @@ Rand is Number.               % Add random value to avoid deadlock
 
 
 
-/* ----------------------------------------------------------------------- */
-/* WRITE YOUR CODE FOR TASK-2 HERE */
+% WRITE YOUR CODE FOR TASK-2 HERE */
 /* TASK 2: IMPLEMENT playerA CODE HERE */
 /* MIMIC THE CODE FOR playerB */
 /* ----------------------------------------------------------------------- */
 
+/*playerA Code */
 
+ply_depthA(3).          % Depth of alpha-beta search
+
+% Define the utility function for playerA
+% MAKE SURE that the SUM of all pieces is smaller than 32000
+valueA(king, 10000) :- ! .
+valueA(queen,  900) :- ! .
+valueA(rook,   500) :- ! .
+valueA(knight, 300) :- ! .
+valueA(bishop, 300) :- ! .
+valueA(pawn,   100) :- ! .
+
+% PlayerA book moves, white
+bookA( [ state(white, WhiteKing, WhiteKingRook, WhiteQueenRook), % e2e4
+    state(black, BlackKing, BlackKingRook, BlackQueenRook), % respond with
+    piece(a-8, black, rook  ), piece(b-8, black, knight ),   % ...   e7e5
+    piece(c-8, black, bishop), piece(d-8, black, queen ),
+    piece(e-8, black, king  ), piece(f-8, black, bishop),
+    piece(g-8, black, knight ), piece(h-8, black, rook  ),
+    piece(a-7, black, pawn  ), piece(b-7, black, pawn  ),
+    piece(c-7, black, pawn  ), piece(d-7, black, pawn  ),
+    piece(e-7, black, pawn  ), piece(f-7, black, pawn  ),
+    piece(g-7, black, pawn  ), piece(h-7, black, pawn  ),
+    piece(a-1, white, rook  ), piece(b-1, white, knight ),
+    piece(c-1, white, bishop), piece(d-1, white, queen ),
+    piece(e-1, white, king  ), piece(f-1, white, bishop),
+    piece(g-1, white, knight ), piece(h-1, white, rook  ),
+    piece(a-2, white, pawn  ), piece(b-2, white, pawn  ),
+    piece(c-2, white, pawn  ), piece(d-2, white, pawn  ),
+    piece(f-2, white, pawn  ), piece(g-2, white, pawn  ),
+    piece(h-2, white, pawn  ), piece(e-4, white, pawn  ) ], e-2, e-4).
+
+% PlayerA move
+respond_to(Player, Board, OutBoard) :-
+    write('Working...'), nl,
+    % statistics,
+    select_move(Player, Board, From, To, Rating),       % Select the next move
+    % statistics,
+    finish_move(Player, Board, From, To, Rating,        % Finish the next move
+          OutBoard), !.
+
+% PlayerA check of sufficient condition
+sufficientA(Player, Board, Turn, [], Depth, Alpha, Beta, Move, Val, Move, Val) :-
+    Player \== Turn,        % It is the opponent turn to play, MIN node at Turn
+    Val < Alpha, !.         % Pruning the branch since it is not useful
+sufficientA(Player, Board, Turn, Moves, Depth, Alpha, Beta, Move, Val, Move, Val) :-
+    Player = Turn,          % It is the Player turn to play, MAX node at Turn
+    Val > Beta, !.          % Pruning the branch since it is not useful
+sufficientA(Player, Board, Turn, Moves, Depth, Alpha, Beta, Move, Val,
+    BestMove, BestVal) :-
+    new_bounds(Player, Turn, Alpha, Beta, Val, NewAlpha, NewBeta),
+    find_best(Player, Board, Turn, Moves, Depth, NewAlpha, NewBeta, Move1, Val1),
+    better_of(Player, Turn, Move, Val, Move1, Val1, BestMove, BestVal).
+
+% Collects all moves for PlayerA
+collect_movesA(Board, Color, Moves) :-
+    bagof(move(From, To), Piece^move(Board,From,To,Color,Piece), Moves).
 
 /* -------------------------- DO NOT OVERRIDE --------------------------- */
 strengthB([], _, _, Rand) :- noise_level(Level), random(0, Level, Number),
